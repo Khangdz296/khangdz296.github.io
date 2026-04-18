@@ -1,0 +1,11 @@
+- type: github
+  icon: "fab fa-github"
+  url: "https://github.com/khangdz296"
+
+- type: linkedin
+  icon: "fab fa-linkedin"
+  url: "https://www.linkedin.com/in/khangdz296"
+
+- type: email
+  icon: "fas fa-envelope"
+  url: "mailto:duongdnkhang@gmail.com"

@@ -9,10 +9,10 @@ prefer_datetime_locale:
 timezone: Asia/Ho_Chi_Minh
 # ↓ --------------------------
 
-title: DanielPark
-tagline: Penetration Testing, Bug Bounty Hunting, Security Research.
+title: Daniel Park
+tagline: Web Security, Penetration Testing, Security Research.
 description: >-
-  Penetration Testing, Bug Bounty Hunting, Security Research.
+  Web Security, Penetration Testing, and Security Research.
 
 url: "https://khangdz296.github.io"
 
@@ -27,8 +27,7 @@ social:
   email: duongdnkhang@gmail.com
   links:
     - https://github.com/khangdz296
-    # - https://twitter.com/your_username
-    # - https://www.linkedin.com/in/your_username
+    - https://www.linkedin.com/in/khangdz296
 
 google_site_verification:
 
@@ -36,13 +35,13 @@ google_site_verification:
 # The end of `jekyll-seo-tag` settings
 
 google_analytics:
-  id: ""
+  id: "G-9GHPD3MHTJ"
 
 theme_mode: dark #
 
 img_cdn:
 
-avatar: https://github.com/khangdz296.png
+avatar: /assets/img/avatar.jpg
 
 toc: true
 comments:
