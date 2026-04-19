@@ -10,9 +10,9 @@ timezone: Asia/Ho_Chi_Minh
 # ↓ --------------------------
 
 title: Daniel Park
-tagline: Web Security, Penetration Testing, Security Research.
+tagline: Web Security, Penetration Testing and Security Research.
 description: >-
-  Web Security, Penetration Testing, and Security Research.
+  Web Security, Penetration Testing and Security Research.
 
 url: "https://khangdz296.github.io"
 
@@ -41,7 +41,7 @@ theme_mode: dark #
 
 img_cdn:
 
-avatar: /assets/img/avatar.jpg
+avatar: /assets/img/avatar.png
 
 toc: true
 comments:
