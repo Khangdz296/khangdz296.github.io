@@ -21,7 +21,7 @@ Here are a few quick facts about me:
 ### Technical Skills
 
 - **Field:** Cybersecurity, Penetration Testing
-- **Programming:** C++, C#, Java, Python, Spring Boot,
+- **Programming:** C++, C#, Java, Python
 - **Tools:** Burp Suite, Sqlmap, Nessus, Metasploit, Wireshark, Nmap
 - **Operating Systems:** Windows, Linux
 - **Languages:** English, Vietnamese
