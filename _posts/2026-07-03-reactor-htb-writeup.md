@@ -18,19 +18,41 @@ tags:
 > Machine: Reactor  
 > Difficulty: Easy  
 > OS: Linux  
-> Tags: Next.js, React Server Components, CVE-2025-55182, SQLite, CrackStation, SSH, Node Inspector
+> Tags: Next.js, React Server Components, CVE-2025-55182, SQLite, CrackStation, SSH, Node Inspector  
+> Disclaimer: Bài viết được thực hiện trong môi trường HackTheBox được cấp quyền.
 
 ![Reactor machine](/assets/img/20260703-reactor-htb-writeup/machine.png)
 
-## Mở đầu
+## Tổng quan
 
 Trong bài này mình sẽ ghi lại quá trình làm machine **Reactor** trên Hack The Box. Hướng khai thác chính của box này là một web app Next.js bị dính CVE-2025-55182, sau đó mình đọc được SQLite database để lấy credential của user `engineer`, SSH vào server và leo quyền root thông qua một Node.js process đang bật debug inspector với quyền root.
 
-## Recon
+Attack chain của mình:
+
+```text
+Nmap
+-> Port 3000 chạy Next.js
+-> Phân tích JS thấy Next.js 15.0.3 và React 19 RC
+-> Xác định 2 CVE liên quan: CVE-2025-29927 và CVE-2025-55182
+-> Chọn thử CVE-2025-55182 trước vì target có RSC markers và CVE này khá nổi tiếng
+-> Dùng PoC msanft/CVE-2025-55182 lấy RCE với user node
+-> Đọc /app/reactor.db
+-> Lấy MD5 hash của engineer
+-> Crack bằng CrackStation ra password reactor1
+-> SSH vào engineer
+-> Lấy user flag
+-> Enum process và thấy Node inspector của root tại 127.0.0.1:9229
+-> Attach debugger
+-> Tạo SUID bash
+-> Lấy root shell
+-> Đọc root flag
+```
+
+## 1. Recon ban đầu
 
 Đầu tiên mình scan Nmap:
 
-<img src="{{ '/assets/img/20260703-reactor-htb-writeup/nmap_scan.png' | relative_url }}" alt="Nmap scan" width="501">
+![Nmap scan](/assets/img/20260703-reactor-htb-writeup/nmap_scan.png)
 
 Kết quả có 2 port đáng chú ý:
 
@@ -47,7 +69,7 @@ Khi truy cập web, mình thấy đây là một dashboard có tên **ReactorWat
 
 Giao diện hiển thị các thông số như core status, core temp, pressure, coolant flow, turbine output và system logs.
 
-## Phân tích JavaScript
+## 2. Phân tích JavaScript
 
 Mình tải các file JavaScript của trang về để review:
 
@@ -102,7 +124,7 @@ PoC mình dùng là repo:
 https://github.com/msanft/CVE-2025-55182/blob/main/poc.py
 ```
 
-## Xác nhận RSC Endpoint
+## 3. Xác nhận RSC Endpoint
 
 Mình test endpoint RSC bằng request:
 
@@ -122,7 +144,7 @@ Content-Type: text/x-component
 
 Đây là tín hiệu quan trọng, vì app thật sự có React Server Components endpoint.
 
-## Initial Access - CVE-2025-55182
+## 4. Initial Access - CVE-2025-55182
 
 Mình dùng `poc.py` từ repo của `msanft`. Sau khi lưu PoC, mình chạy thử lệnh `id`:
 
@@ -146,7 +168,7 @@ python3 poc.py http://10.129.245.214:3000/ "ls -la /app"
 
 Nếu không quote, PoC chỉ lấy argument đầu tiên sau URL, nên command có thể bị cắt sai.
 
-## Đọc Database
+## 5. Đọc Database
 
 Sau khi có RCE, mình liệt kê thư mục app và thấy file SQLite:
 
@@ -193,7 +215,7 @@ Vậy credential có được:
 engineer:reactor1
 ```
 
-## SSH và User Flag
+## 6. SSH và User Flag
 
 Mình SSH vào target bằng user `engineer`:
 
@@ -203,7 +225,7 @@ ssh engineer@10.129.245.214
 
 Sau khi login thành công, mình đọc user flag:
 
-<img src="{{ '/assets/img/20260703-reactor-htb-writeup/user_flag.png' | relative_url }}" alt="User flag" width="482">
+![User flag](/assets/img/20260703-reactor-htb-writeup/user_flag.png)
 
 ```bash
 cat user.txt
@@ -215,7 +237,7 @@ Flag:
 <user_flag>
 ```
 
-## Privilege Escalation
+## 7. Privilege Escalation
 
 Sau khi vào user `engineer`, mình enum cơ bản:
 
@@ -293,7 +315,7 @@ Flag:
 <root_flag>
 ```
 
-## Vì sao Node Inspector leo được Root?
+## 8. Vì sao Node Inspector leo được Root?
 
 Vấn đề nằm ở process này:
 
@@ -305,41 +327,21 @@ Node inspector cho phép client debug evaluate JavaScript trực tiếp trong ru
 
 Nói ngắn gọn: đây không phải Node tự leo quyền, mà là một service Node chạy bằng root lại mở cổng debug inspector cho local user attach vào. Khi attach được, mình có thể thực thi command hệ thống với quyền root.
 
-## Tổng kết Attack Chain
+## 9. Lessons Learned
 
-Attack chain của mình:
+Qua machine này, mình rút ra một số điểm khá hay:
 
-```text
-Nmap
--> Port 3000 chạy Next.js
--> Phân tích JS thấy Next.js 15.0.3 và React 19 RC
--> Xác định 2 CVE liên quan: CVE-2025-29927 và CVE-2025-55182
--> Chọn thử CVE-2025-55182 trước vì target có RSC markers và CVE này khá nổi tiếng
--> Dùng PoC msanft/CVE-2025-55182 lấy RCE với user node
--> Đọc /app/reactor.db
--> Lấy MD5 hash của engineer
--> Crack bằng CrackStation ra password reactor1
--> SSH vào engineer
--> Lấy user flag
--> Enum process và thấy Node inspector của root tại 127.0.0.1:9229
--> Attach debugger
--> Tạo SUID bash
--> Lấy root shell
--> Đọc root flag
-```
-
-## Bài học rút ra
-
-Box này cho mình thấy việc fingerprint framework và version rất quan trọng. Chỉ từ Next.js `15.0.3`, React 19 RC và các marker RSC, mình có thể khoanh vùng được CVE-2025-55182 để thử nghiệm.
-
-Phần sau của box cũng khá hay: credential nằm trong SQLite database với hash MD5 yếu, còn privilege escalation đến từ Node inspector bị bật trên production với quyền root. Đây là một misconfiguration nguy hiểm, vì debug inspector gần như cho phép RCE trong process đang debug.
-
-Nếu triển khai production thì mình nghĩ nên tránh các lỗi sau:
-
+- Fingerprint framework và version rất quan trọng. Chỉ từ Next.js `15.0.3`, React 19 RC và các marker RSC, mình có thể khoanh vùng được CVE-2025-55182 để thử nghiệm.
+- Credential nằm trong SQLite database với hash MD5 yếu là một điểm pivot đáng chú ý.
+- Privilege escalation đến từ Node inspector bị bật trên production với quyền root. Đây là một misconfiguration nguy hiểm, vì debug inspector gần như cho phép RCE trong process đang debug.
 - Không chạy service Node bằng root nếu không cần thiết.
 - Không bật `--inspect` trên production.
 - Không lưu password bằng MD5.
 - Không để database chứa credential nằm trong app directory mà user web có thể đọc.
+
+## Kết luận
+
+Reactor có attack path khá gọn: fingerprint Next.js/React Server Components, khai thác CVE-2025-55182 để lấy RCE với user `node`, đọc SQLite database để lấy credential của `engineer`, rồi abuse Node inspector đang chạy bằng root để leo quyền.
 
 ## Tham khảo
 

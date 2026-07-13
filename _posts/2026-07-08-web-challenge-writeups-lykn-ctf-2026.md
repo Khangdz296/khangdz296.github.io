@@ -23,9 +23,9 @@ toc: true
 
 <a id="discord-nitro"></a>
 
-# Discord Nitro - Writeup
+## Discord Nitro
 
-## Tổng quan
+### Tổng quan
 
 Challenge là một trang **Members Area** đơn giản có form đăng nhập. Mục tiêu của mình là leo quyền từ tài khoản thường lên quyền admin để đọc flag trong trang `/admin`.
 
@@ -39,9 +39,9 @@ guest / guest
 
 ![Form login](/assets/img/20260708-web-challenge-writeups-lykn-ctf-2026/discord-nitro/login.png)
 
-## Các hướng đi mình đã thực hiện
+### Các hướng đi mình đã thực hiện
 
-### 1. Đăng nhập bằng tài khoản demo
+#### 1. Đăng nhập bằng tài khoản demo
 
 Đầu tiên mình thử đăng nhập bằng tài khoản `guest / guest`. Sau khi đăng nhập thành công, server redirect mình về `/home`.
 
@@ -55,7 +55,7 @@ Your session is stored in the token cookie (a JWT).
 
 ![Đăng nhập guest và thấy JWT cookie](/assets/img/20260708-web-challenge-writeups-lykn-ctf-2026/discord-nitro/login_guest_jwt.png)
 
-### 2. Kiểm tra trang admin
+#### 2. Kiểm tra trang admin
 
 Từ trang home có nút dẫn tới `/admin`. Khi truy cập với tài khoản `guest`, server trả về thông báo `Access denied` vì role hiện tại chỉ là `user`.
 
@@ -67,7 +67,7 @@ Hint: the token cookie decides who you are. Is it really secure?
 
 Từ đây mình tập trung vào JWT, vì nếu server tin hoàn toàn vào dữ liệu trong token thì chỉ cần sửa role thành `admin` là có thể vượt qua kiểm tra phân quyền.
 
-### 3. Phân tích JWT
+#### 3. Phân tích JWT
 
 JWT ban đầu có dạng gồm 3 phần:
 
@@ -96,7 +96,7 @@ Lúc này mình có một vài hướng thử:
 
 Hướng `alg=none` là hướng mình thử trước vì challenge đã gợi ý mạnh rằng cookie JWT quyết định danh tính người dùng.
 
-### 4. Forge JWT với `alg=none`
+#### 4. Forge JWT với `alg=none`
 
 Mình tạo lại JWT với header:
 
@@ -126,7 +126,7 @@ eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJ1c2VyIjoiYWRtaW4iLCJyb2xlIjoiYWRtaW4ifQ.
 
 Sau đó mình set cookie `token` bằng JWT vừa forge và truy cập lại `/admin`.
 
-### 5. Lấy flag
+#### 5. Lấy flag
 
 Server chấp nhận token `alg=none`, tin payload bên trong và coi mình là admin. Khi vào `/admin`, flag được hiển thị trực tiếp:
 
@@ -138,13 +138,13 @@ Flag:
 LYKNCTF{f1b14de2746c4fe0b8194b8ce9a96c9d}
 ```
 
-## Nguyên nhân lỗi
+### Nguyên nhân lỗi
 
 Lỗi chính của challenge là server chấp nhận JWT có thuật toán `none`. Điều này làm mất hoàn toàn ý nghĩa của chữ ký JWT, vì attacker có thể tự tạo token mới với bất kỳ payload nào mà không cần biết secret.
 
 Trong trường hợp này, server còn dùng field `role` trong JWT để quyết định quyền truy cập admin. Vì vậy khi mình đổi `role` từ `user` sang `admin`, mình có thể bypass authorization.
 
-## Cách khắc phục
+### Cách khắc phục
 
 Một số cách fix:
 
@@ -154,7 +154,7 @@ Một số cách fix:
 - Dùng secret đủ mạnh nếu dùng HMAC.
 - Với các quyền quan trọng như admin, nên kiểm tra lại role từ database hoặc backend session thay vì tin hoàn toàn vào dữ liệu client nắm giữ.
 
-## Kết luận
+### Kết luận
 
 Challenge này là một bài JWT authorization bypass khá trực diện. Luồng khai thác của mình là: đăng nhập demo, kiểm tra cookie JWT, decode payload, thử forge token với `alg=none`, set lại cookie và truy cập `/admin` để lấy flag.
 
@@ -162,26 +162,20 @@ Challenge này là một bài JWT authorization bypass khá trực diện. Luồ
 
 <a id="freebie"></a>
 
-# Freebie - Writeup
+## Freebie
 
-![Challenge info](/assets/img/20260708-web-challenge-writeups-lykn-ctf-2026/freebie/chall.png)
+### Tổng quan
 
-## Thông tin challenge
-
-- Tên challenge: **Freebie**
-- Điểm: **500**
-- Tác giả: **nuts727**
-- Mô tả: **Human error is the weakest link.**
-- Category: **Web**
-
-Ở bài này, mình được cung cấp một web app Flask đơn giản. Giao diện ban đầu có hai chức năng chính:
+Challenge **Freebie** là một web app Flask đơn giản với mô tả **Human error is the weakest link**. Giao diện ban đầu có hai chức năng chính:
 
 - `Authenticate` trỏ tới `/login`
 - `View Classified` trỏ tới `/flag`
 
-Mục tiêu là truy cập được khu vực classified với quyền `admin`.
+![Challenge info](/assets/img/20260708-web-challenge-writeups-lykn-ctf-2026/freebie/chall.png)
 
-## Recon ban đầu
+Mục tiêu của mình là truy cập được khu vực classified với quyền `admin`. Vì app dùng Flask session để lưu trạng thái đăng nhập, hướng khai thác chính sẽ xoay quanh việc tìm cách kiểm soát session thay vì chỉ brute-force tài khoản admin.
+
+### Recon ban đầu
 
 Mình bắt đầu bằng cách kiểm tra các route chính:
 
@@ -204,9 +198,9 @@ Only admin can view this page.
 
 Điều này cho thấy session sau login chỉ có quyền user thường, còn `/flag` yêu cầu session có `username = admin`.
 
-## Các hướng mình đã thử
+### Các hướng mình đã thử
 
-### 1. Đăng ký tài khoản admin
+#### 1. Đăng ký tài khoản admin
 
 Mình thử đăng ký username là `admin`, nhưng app chặn trực tiếp:
 
@@ -226,7 +220,7 @@ Tiếp theo mình thử một số biến thể như:
 
 Các username này có thể đăng ký trong một vài trường hợp, nhưng khi vào `/flag` vẫn bị chặn vì server kiểm tra chính xác chuỗi `admin`.
 
-### 2. Đăng nhập admin trực tiếp
+#### 2. Đăng nhập admin trực tiếp
 
 Mình thử login bằng `admin` với một số password phổ biến như:
 
@@ -246,7 +240,7 @@ Nhưng route `/login` chặn admin trước khi kiểm tra password:
 Error 403: Admin login via web interface is disabled.
 ```
 
-### 3. Thử bypass qua HTTP parameter pollution
+#### 3. Thử bypass qua HTTP parameter pollution
 
 Mình thử gửi nhiều field `username` trong cùng request, ví dụ:
 
@@ -256,7 +250,7 @@ username=test&username=admin&password=123
 
 Nhưng Flask lấy giá trị đầu tiên, session vẫn là user thường nên không bypass được.
 
-### 4. Thử SQL injection
+#### 4. Thử SQL injection
 
 Mình thử các payload cơ bản ở cả `username` và `password`, ví dụ:
 
@@ -268,7 +262,7 @@ admin'--
 
 Không có dấu hiệu SQL injection. App có vẻ đang dùng một dictionary trong memory thay vì database.
 
-### 5. Thử forge Flask session
+#### 5. Thử forge Flask session
 
 Sau khi login bằng user thường, cookie session có dạng Flask signed session:
 
@@ -290,7 +284,7 @@ Nếu có được Flask `secret_key`, mình có thể ký lại session thành:
 
 Ban đầu mình thử crack secret key bằng một số wordlist và các biến thể theo tên challenge, nhưng chưa ra. Lúc này mình quay lại tìm leak trong app.
 
-## Lỗ hổng chính: debug parameter leak source code
+### Lỗ hổng chính: debug parameter leak source code
 
 Clue của đề là:
 
@@ -332,7 +326,7 @@ app.secret_key = "sup3r_s3cr3t_ctf_k3y_727"
 
 Đây chính là lỗi “human error”.
 
-## Forge Flask session admin
+### Forge Flask session admin
 
 Flask session cookie được ký bằng `itsdangerous`, cụ thể qua `SecureCookieSessionInterface`.
 
@@ -361,13 +355,13 @@ Sau đó mình truy cập vào `/flag` với cookie này. Server nhận session 
 
 ![Get flag](/assets/img/20260708-web-challenge-writeups-lykn-ctf-2026/freebie/get_flag.png)
 
-## Flag
+### Flag
 
 ```text
 LYKNCTF{4aabdc6089b348739faed2b7e5062b56}
 ```
 
-## Tổng kết
+### Tổng kết
 
 Luồng khai thác của mình:
 
@@ -386,11 +380,11 @@ Lỗi gốc nằm ở việc developer để lại debug feature trong productio
 
 <a id="lykn-corp"></a>
 
-# LYKN Corp - Web Challenge Writeup
+## LYKN Corp
 
 ![Challenge](/assets/img/20260708-web-challenge-writeups-lykn-ctf-2026/lykn-corp/chall.png)
 
-## Tổng quan
+### Tổng quan
 
 Challenge cho mình một hệ thống mail nội bộ của **LYKN Corp**. Mô tả bài nhấn vào việc công ty vừa ra mắt một onboarding portal cho nhân viên mới, nên hướng suy nghĩ ban đầu của mình là tìm credential mặc định hoặc dữ liệu onboarding bị lộ.
 
@@ -404,7 +398,7 @@ LYKNCTF{46df3db3feab44738e0e820507b8b423}
 
 ![Flag](/assets/img/20260708-web-challenge-writeups-lykn-ctf-2026/lykn-corp/getflag.png)
 
-## Recon ban đầu
+### Recon ban đầu
 
 Mình mở trang chính thì thấy một form login đơn giản của **LYKN Mail**.
 
@@ -429,7 +423,7 @@ Disallow: /backup
 
 Đây là hint khá trực tiếp: có thư mục backup bị giấu.
 
-## Hướng `/backup`, dirsearch và lỗi case-sensitive
+### Hướng `/backup`, dirsearch và lỗi case-sensitive
 
 Sau khi thấy `robots.txt` leak `/backup`, mình thử mở trực tiếp đường dẫn này trên browser nhưng bị chặn `403 Forbidden`. Mình cũng thử các dạng khác như `bAckup`, `BACKUP`, `bAcKup`... Nhưng không có tiến triển gì vì vậy mình chuyển sang brute-force directory bằng `dirsearch`:
 
@@ -463,7 +457,7 @@ Lúc này directory listing hiện ra và có file `credentials.txt`:
 
 ![Backup Directory](/assets/img/20260708-web-challenge-writeups-lykn-ctf-2026/lykn-corp/Backup_credential.png)
 
-## Lấy credential nhân viên mới
+### Lấy credential nhân viên mới
 
 Ở trang directory listing `/Backup/`, mình truy cập vào file `credentials.txt` trên browser:
 
@@ -482,7 +476,7 @@ Vậy bug ở bước này là:
 - `/Backup/` chữ hoa không bị rule chặn do path matching case-sensitive.
 - Directory listing bật, để lộ `credentials.txt`.
 
-## Login bằng account Tuan
+### Login bằng account Tuan
 
 Mình dùng credential vừa lấy được để login:
 
@@ -497,7 +491,7 @@ Sau khi login, inbox chỉ có một mail onboarding từ `minh.le@lykn.local`. 
 
 Ở đây mình từng làm một bài có sử dụng mật khẩu mặc định cho mọi user nên ngay lập tức mình thử theo hướng password reuse. Vì password onboarding là `Welcome123!`, mình thử cùng password đó với user đã xuất hiện trong mail là `minh.le`.
 
-## Password reuse sang Minh Le
+### Password reuse sang Minh Le
 
 Credential tiếp theo:
 
@@ -523,7 +517,7 @@ Password: Adm1n_S3cur3_P@ss_2026
 
 Thành công leo tiếp từ account nhân viên mới sang account có thông tin admin.
 
-## Login admin và lấy flag
+### Login admin và lấy flag
 
 Mình login bằng credential admin:
 
@@ -540,7 +534,7 @@ LYKNCTF{46df3db3feab44738e0e820507b8b423}
 
 ![Get Flag](/assets/img/20260708-web-challenge-writeups-lykn-ctf-2026/lykn-corp/getflag.png)
 
-## Các hướng mình đã thử
+### Các hướng mình đã thử
 
 Trong quá trình làm, mình có thử một số hướng khác trước khi chốt flow chính:
 
@@ -551,7 +545,7 @@ Trong quá trình làm, mình có thử một số hướng khác trước khi c
 - Thử đọc CSS để xem app có route nào lộ không. CSS xác nhận có webmail, admin page, compose, sent/trash, flag card, nhưng không có secret trực tiếp.
 - Thử IDOR `/email/<id>` bằng account Tuan nhưng không đọc được mail user khác.
 
-## Root cause
+### Root cause
 
 Challenge này có chuỗi lỗi khá thực tế:
 
@@ -562,7 +556,7 @@ Challenge này có chuỗi lỗi khá thực tế:
 5. Password onboarding bị reuse cho user nội bộ khác.
 6. Mailbox nội bộ chứa credential admin plaintext.
 
-## Bài học rút ra
+### Bài học rút ra
 
 - Không để thông tin nhạy cảm trong `robots.txt`; nó chỉ là chỉ dẫn cho crawler, không phải cơ chế bảo vệ.
 - Rule chặn path nên xử lý normalize/case một cách rõ ràng, đặc biệt khi dùng nginx làm reverse proxy/static server.
@@ -574,9 +568,9 @@ Challenge này có chuỗi lỗi khá thực tế:
 
 <a id="ocr"></a>
 
-# OCR - Writeup
+## OCR
 
-## Tổng quan
+### Tổng quan
 
 Challenge **OCR** là một web app nhỏ tên **OCR Note Saver**. App cho mình vẽ chữ lên canvas, gửi ảnh PNG lên server để OCR bằng Tesseract, sau đó cho lưu phần text OCR thành một note trên server.
 
@@ -584,7 +578,7 @@ Challenge **OCR** là một web app nhỏ tên **OCR Note Saver**. App cho mình
 
 Điểm đáng chú ý ngay từ mô tả và giao diện là app có chức năng **save server-side note**. Vì note được lưu với filename do người dùng nhập, hướng mình nghĩ tới đầu tiên là thử ghi file vào web root, sau đó tìm cách biến note thành file thực thi.
 
-## Recon ban đầu
+### Recon ban đầu
 
 Mình bắt đầu bằng cách thử luồng bình thường:
 
@@ -601,7 +595,7 @@ Khi lưu text bình thường thành `note.txt`, mình có thể đọc lại fi
 
 Điều này xác nhận thư mục `saved/` nằm trong web-accessible path.
 
-## Kiểm tra filter filename
+### Kiểm tra filter filename
 
 Mình fuzz nhanh một số extension để xem app chặn gì:
 
@@ -644,7 +638,7 @@ server trả về:
 
 Vậy là `.php5` được execute thật.
 
-## Kiểm tra filter nội dung
+### Kiểm tra filter nội dung
 
 Filter nội dung không chỉ chặn extension, mà còn chặn một số token nguy hiểm. Các payload như sau bị chặn:
 
@@ -670,7 +664,7 @@ Payload RCE bypass filter:
 
 Payload này ngắn, không cần đóng `?>`, và vẫn hợp lệ vì PHP parse tới EOF.
 
-## Vấn đề giới hạn OCR
+### Vấn đề giới hạn OCR
 
 Một vấn đề nhỏ là app/OCR chỉ nhận payload ngắn ổn định, khoảng 40 ký tự. Vì vậy mình rút payload xuống còn:
 
@@ -680,7 +674,7 @@ Một vấn đề nhỏ là app/OCR chỉ nhận payload ngắn ổn định, kh
 
 Payload này khoảng 34 ký tự và biến file `.php5` thành một webshell nhận command qua query parameter `0`.
 
-## Ghi payload vào canvas bằng DevTools
+### Ghi payload vào canvas bằng DevTools
 
 Thay vì vẽ tay, mình dùng DevTools Console để ghi text trực tiếp lên canvas. Cách này giúp OCR đọc chính xác hơn.
 
@@ -706,7 +700,7 @@ và bấm **Save note**.
 
 ![Save php5 shell](/assets/img/20260708-web-challenge-writeups-lykn-ctf-2026/ocr/Screenshot%202026-07-06%20215737.png)
 
-## Khai thác RCE
+### Khai thác RCE
 
 Sau khi lưu thành công, shell nằm tại:
 
@@ -736,7 +730,7 @@ Kết quả trả về flag:
 LYKNCTF{d7dfc7f5445b43ea8272243129bcd02f}
 ```
 
-## Tóm tắt bug
+### Tóm tắt bug
 
 Root cause của challenge là kết hợp nhiều lỗi nhỏ:
 
@@ -768,11 +762,11 @@ Trigger:
 
 <a id="right-in-front-of-your-eyes"></a>
 
-# Right in front of your eyes - Writeup
+## Right in front of your eyes
 
 ![Thông tin challenge](/assets/img/20260708-web-challenge-writeups-lykn-ctf-2026/right-in-front-of-your-eyes/chall.png)
 
-## Tổng quan
+### Tổng quan
 
 Challenge có tên **Right in front of your eyes**. Nhìn vào mô tả/hint thì ý chính là thứ mình cần tìm đang ở "ngay trước mắt", nhưng nếu chỉ xem giao diện trên trình duyệt thì khá dễ bỏ qua.
 
@@ -782,7 +776,7 @@ Trong ảnh thông tin challenge, hint ghi:
 
 Hint này làm mình nghĩ đến việc có một thông tin nào đó đã xuất hiện trong quá trình request/response, nhưng trình duyệt có thể đã xử lý quá nhanh nên mình không nhìn thấy trực tiếp.
 
-## Quan sát trang web
+### Quan sát trang web
 
 ![Trang chủ](/assets/img/20260708-web-challenge-writeups-lykn-ctf-2026/right-in-front-of-your-eyes/home.png)
 
@@ -801,7 +795,7 @@ Ban đầu mình thử đi theo các hướng quen thuộc khi gặp một web c
 
 Kết quả là các hướng này không đem lại gì đáng chú ý. Source và cookie đều không có flag hay manh mối rõ ràng.
 
-## Xem request/response bằng Burp Suite
+### Xem request/response bằng Burp Suite
 
 Vì hint nhấn mạnh việc mình đã "đi ngang qua" thứ cần tìm, mình chuyển sang bắt request bằng Burp Suite để xem kỹ hơn từng response mà browser nhận được.
 
@@ -825,7 +819,7 @@ Here is the flag: LYKNCTF{10a266abc8d4042aa022bef07c92a4}
 
 Đây là lý do nếu chỉ dùng browser bình thường thì mình rất dễ bỏ qua. Browser tự động follow redirect `302`, nên response trung gian chứa flag không được hiển thị trên giao diện cuối cùng.
 
-## Kết luận
+### Kết luận
 
 Challenge này không cần khai thác phức tạp. Hướng đúng là quan sát luồng HTTP thật sự thay vì chỉ nhìn giao diện cuối cùng trên browser.
 
@@ -839,9 +833,9 @@ LYKNCTF{10a266abc8d4042aa022bef07c92a4}
 
 <a id="waguri1"></a>
 
-# Waguri1 / Spawn Race Writeup
+## Waguri1 / Spawn Race
 
-## Thông tin challenge
+### Thông tin challenge
 
 - **Challenge:** Waguri1 / Spawn Race
 - **Category:** Web
@@ -849,7 +843,7 @@ LYKNCTF{10a266abc8d4042aa022bef07c92a4}
 
 ![Giao diện challenge](/assets/img/20260708-web-challenge-writeups-lykn-ctf-2026/waguri1/chall.png)
 
-## Tổng quan
+### Tổng quan
 
 Khi vào challenge, mình thấy trang chỉ có chức năng chính là bấm nút **SPAWN** để spawn ra ảnh kèm âm thanh. Thoạt nhìn thì hướng đầu tiên khá tự nhiên là kiểm tra source HTML/JavaScript xem nút này gửi request gì, endpoint nào xử lý, hoặc có dữ liệu nào bị giấu trong frontend không.
 
@@ -867,7 +861,7 @@ socket.send(JSON.stringify({ type: "spawn" }));
 
 Điều này làm mình chuyển hướng từ việc tìm endpoint HTTP sang quan sát trực tiếp dữ liệu WebSocket.
 
-## Phân tích frontend
+### Phân tích frontend
 
 Tiếp tục đọc phần xử lý message trả về từ server, mình thấy frontend parse dữ liệu JSON và chỉ render ảnh + âm thanh khi message có dạng `spawned`:
 
@@ -881,7 +875,7 @@ if (message.type === "spawned" && message.image && message.sound) {
 
 Vì vậy, mình không nên chỉ nhìn những gì được render trên trang. Hướng đúng hơn là phải xem **raw WebSocket message** server gửi về.
 
-## Quan sát raw WebSocket response
+### Quan sát raw WebSocket response
 
 Mình mở DevTools Console và gắn thêm listener để log toàn bộ dữ liệu thô nhận được từ WebSocket:
 
@@ -897,7 +891,7 @@ Payload mình dùng trong Console:
 
 Đoạn script này tương đương với việc bấm nút **SPAWN** 300 lần rất nhanh, nhưng thay vì thao tác tay trên giao diện thì mình gửi trực tiếp WebSocket message.
 
-## Lấy flag
+### Lấy flag
 
 Sau khi spam spawn, server trả về một message đặc biệt. Message này vẫn có `type: "spawned"`, vẫn có `image` và `sound`, nhưng có thêm các field quan trọng như `race`, `spawnId` và `flag`.
 
@@ -920,7 +914,7 @@ Flag nhận được là:
 LYKNCTF{92c27df6f37b463fab76e5ee8c1069cd}
 ```
 
-## Kết luận
+### Kết luận
 
 Challenge này không phải dạng tìm flag trực tiếp trong source HTML/JS. Source chỉ giúp mình nhận ra cơ chế giao tiếp thật sự là **WebSocket**.
 
