@@ -1,7 +1,7 @@
 ---
-title: "HTB Reactor Writeup"
+title: "Reactor Writeup - Hack The Box"
 date: 2026-07-03 20:36:00 +0700
-categories: [Hack The Box, Writeup]
+categories: [Hack The Box, Seasonal Machines]
 tags:
   [
     hackthebox,
