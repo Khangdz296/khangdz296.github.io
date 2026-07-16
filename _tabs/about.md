@@ -30,4 +30,6 @@ Here are a few quick facts about me:
 ### Achievements
 
 - **3rd Place** - CTF HCMUTE 2025
+- **4th Place** - LYKNCTF 2026
+- **11th Place** - V1t CTF 2026
 - **TOEIC** - 745/990
