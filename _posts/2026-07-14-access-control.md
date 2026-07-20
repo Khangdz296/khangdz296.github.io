@@ -64,7 +64,7 @@ Broken access control có thể xuất hiện dưới nhiều hình thức khác
 
 Vertical privilege escalation xảy ra khi user có quyền thấp truy cập được chức năng của user có quyền cao hơn. Trong web app, mục tiêu thường là admin panel, chức năng đổi role, xóa user hoặc đọc dữ liệu quản trị.
 
-#### Unprotected functionality
+#### 2.1.1 Unprotected functionality
 
 ![lab](/assets/img/20260714-access-control/image1.png)
 
@@ -102,7 +102,7 @@ Truy cập admin panel bằng đường dẫn vừa tìm được `/admin-xmjqe4
 
 ![lab](/assets/img/20260714-access-control/image6.png)
 
-#### Parameter-based access control methods
+#### 2.1.2 Parameter-based access control methods
 
 Một số ứng dụng lưu trạng thái phân quyền trong parameter, cookie hoặc field phía client. Nếu backend tin trực tiếp vào các giá trị này, attacker có thể sửa request để tự cấp quyền cho mình.
 
@@ -144,7 +144,7 @@ Kết quả `roleid` bị ghi đè và với account là `wiener` thì mình có
 
 Xóa user `carlos` để hoàn thành bài lab.
 
-#### Broken access control resulting from platform misconfiguration
+#### 2.1.3 Broken access control resulting from platform misconfiguration
 
 Access control cũng có thể bị bypass do cấu hình sai ở proxy, frontend server hoặc framework. Ví dụ, một lớp chặn request dựa trên URL gốc, nhưng backend lại hỗ trợ các header rewrite như `X-Original-URL` hoặc xử lý method khác nhau giữa `GET` và `POST`.
 
