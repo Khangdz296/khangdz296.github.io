@@ -33,7 +33,9 @@ Cuối cùng là tab `Suggestions` sẽ đề xuất các bước kiểm thử t
 
 ## 3. Điểm hạn chế
 
-Khi bắt tay vào làm thì em mới bắt đầu gặp khó khăn về việc theo dõi các trường hợp như redirect chain, stored XSS, DOM XSS hoặc runtime data flow phía client. Do đó thì extension hiện tại của e chỉ phát hiện được đa số là dạng input được reflect ngay trong response. Cũng như là chưa tự động hoàn nó chỉ giúp được một phần là xác định context thôi còn sau đó khi tiến hành khai thác thêm thì vẫn có thể sẽ gặp những lớp filter khác.
+Khi bắt tay vào làm thì em mới bắt đầu gặp khó khăn về việc theo dõi các trường hợp như redirect chain, stored XSS, DOM XSS hoặc runtime data flow phía client. Do đó thì extension hiện tại của e chỉ phát hiện được đa số là dạng input được reflect ngay trong response.
+
+Cũng như là chưa tự động hoàn nó chỉ giúp được một phần là xác định context thôi còn sau đó khi tiến hành khai thác thêm thì vẫn có thể sẽ gặp những lớp filter khác. Các trường hợp như bị CSP block cũng chưa được triển khai.
 
 ## Một vài trường hợp khác
 
